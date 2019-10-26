@@ -1,6 +1,8 @@
 import logging
 import time
 
+from aop_example.accounts import access_control
+
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
@@ -27,3 +29,12 @@ def throttled(max_frequency_in_millis):
         return wrapped
 
     return inner
+
+def access_controlled(func):
+    def wrapped(*args, **kwargs):
+        if access_control.current_user is None:
+            raise Exception(f"You must log in to perform {func.__name__}")
+        else:
+            func(*args, **kwargs)
+
+    return wrapped
