@@ -32,9 +32,14 @@ def throttled(max_frequency_in_millis):
 
 def access_controlled(func):
     def wrapped(*args, **kwargs):
-        if access_control.current_user is None:
-            raise Exception(f"You must log in to perform {func.__name__}")
-        else:
+        try:
+            user_token = kwargs['user_token']
+        except KeyError:
+            raise Exception(f"No user_token keyword was provided to function '{func.__name__}'")
+        if user_token.is_valid():
+            kwargs.pop("user_token")
             func(*args, **kwargs)
+        else:
+            raise Exception(f"Received invalid token for user '{user_token.username}'")
 
     return wrapped
