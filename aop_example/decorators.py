@@ -2,7 +2,7 @@ import logging
 import time
 from functools import wraps
 
-from aop_example.accounts import access_control
+from aop_example.database import IN_MEMORY_DB
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -45,5 +45,34 @@ def access_controlled(func):
             func(*args, **kwargs)
         else:
             raise Exception(f"Received invalid token for user '{user_token.username}'")
+
+    return wrapped
+
+def database_backed(Clazz):
+
+    IN_MEMORY_DB.create_table(Clazz.__name__)
+
+    def setter(obj, key, value):
+        IN_MEMORY_DB.set_value(Clazz.__name__, hash(obj), key, value)
+
+    def getter(obj, key):
+        return IN_MEMORY_DB.get_value(Clazz.__name__, hash(obj), key)
+
+    Clazz.__setattr__ = setter
+    Clazz.__getattr__ = getter
+
+    return Clazz
+
+def atomic(func):
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        IN_MEMORY_DB.begin_transaction()
+        try:
+            func(*args, **kwargs)
+            IN_MEMORY_DB.commit()
+        except:
+            IN_MEMORY_DB.rollback()
+            raise
+
 
     return wrapped

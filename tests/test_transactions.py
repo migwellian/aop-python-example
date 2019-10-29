@@ -59,3 +59,17 @@ def test_you_must_pass_in_a_user_token_even_though_its_not_declared_in_the_signa
         transfer(from_account, to_account, amount=10)
     assert excinfo.value.args[0] == "No user_token keyword was provided to function 'transfer'"
 
+
+def test_the_transaction_is_rolled_back_if_any_part_fails(user_token):
+    from_account = Account("A123", 100)
+    to_account = Account("B456", 100)
+    to_account.freeze()
+
+    with pytest.raises(Exception) as excinfo:
+        transfer(from_account, to_account, amount=10, user_token=user_token)
+    assert excinfo.value.args[0] == "Account B456 is inactive: cannot deposit funds"
+
+    assert from_account.balance == 100
+    assert to_account.balance == 100
+
+
