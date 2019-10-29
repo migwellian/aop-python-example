@@ -1,5 +1,6 @@
 import logging
 import time
+from functools import wraps
 
 from aop_example.accounts import access_control
 
@@ -7,6 +8,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(leve
 
 
 def logged(func):
+    @wraps(func)
     def wrapped(*args, **kwargs):
         logging.debug(f"Called {func.__name__} {args} {kwargs}")
         func(*args, **kwargs)
@@ -17,6 +19,7 @@ def logged(func):
 def throttled(max_frequency_in_millis):
     time_of_last_call = time.time() - max_frequency_in_millis
     def inner(func):
+        @wraps(func)
         def wrapped(*args, **kwargs):
             nonlocal time_of_last_call
             current_time = time.time()
@@ -31,6 +34,7 @@ def throttled(max_frequency_in_millis):
     return inner
 
 def access_controlled(func):
+    @wraps(func)
     def wrapped(*args, **kwargs):
         try:
             user_token = kwargs['user_token']

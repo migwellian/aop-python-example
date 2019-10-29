@@ -28,7 +28,7 @@ def test_you_cannot_call_transfer_more_than_once_per_100ms(user_token):
     transfer(from_account, to_account, amount=10, user_token=user_token)
     with pytest.raises(Exception) as excinfo:
         transfer(from_account, to_account, amount=10, user_token=user_token)
-    assert excinfo.value.args[0] == "Calls to wrapped are limited to every 100ms"
+    assert excinfo.value.args[0] == "Calls to transfer are limited to every 100ms"
 
 
 def test_you_can_call_transfer_again_after_100ms(user_token):
